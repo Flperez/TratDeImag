@@ -2,55 +2,69 @@ import numpy as np
 import math as mt
 import matplotlib.pyplot as plt
 
-num_datos = 1000
-t = np.linspace(0,2*mt.pi,num=num_datos)
-f = np.zeros(len(t))
-ts =  (2*mt.pi)/num_datos
+
+def calcula_area(f,ts,method='rectangulo'):
+    area = 0
+    if method=='rectangulo':
+        for i in range(0, len(f) - 1):
+            area = area + (f[i]) * ts
+    else:    #trapecio
+        for i in range(0, len(t) - 1):
+            area = area + ((f[i] + f[i + 1]) / 2) * ts
+    return area
+
+def calcula_parametros(f,ts,num):
+
+    an = np.zeros(num+1)
+    bn = np.zeros(num)
+
+    an[0] = calcula_area(f=f,ts=ts,method='rectangulo')
+    an[0] =  (an[0]/(2*mt.pi))*mt.pi #lo ponemos en forma de array
 
 
 
-for i in range (0,len(t)):
-    f[i]=8+3*mt.cos(t[i])+2*mt.cos(2*t[i])+mt.cos(3*t[i])+2*mt.sin(t[i])+4*mt.sin(2*t[i])+3*mt.sin(3*t[i])
+    for i in range(0,len(f)-1):
+        for j in range(0,num):
+            an[j+1]=an[j+1]+(f[i]*mt.cos((j+1)*t[i]))*ts
+            bn[j]=bn[j]+(f[i]*mt.sin((j+1)*t[i]))*ts
 
-print("Metodo rectangulo")
-a0=0
-an=np.zeros(3)
-bn=np.zeros(3)
-for i in range(0,len(t)-1):
-    a0=a0+(f[i])*ts
+    an = np.multiply((1/ mt.pi),an)
+    bn = np.multiply((1 / mt.pi), bn)
+    return an,bn
 
-    for j in range(0,3):
-        an[j]=an[j]+(f[i]*mt.cos((j+1)*t[i]))*ts
-        bn[j]=bn[j]+(f[i]*mt.sin((j+1)*t[i]))*ts
+if __name__ == "__main__":
 
-
-a0=a0/(2*mt.pi)
-for j in range(0, 3):
-    an[j] = an[j] / mt.pi
-    bn[j] = bn[j] / mt.pi
+    num_datos = 1000
+    t = np.linspace(0,2*mt.pi,num=num_datos)
+    f = np.zeros(len(t))
+    g = np.zeros(len(t))
+    ts =  (2*mt.pi)/num_datos
 
 
-print("a0:",a0,"a: ",an,"bn: ",bn)
+
+    for i in range (0,len(t)):
+        f[i]=8+3*mt.cos(t[i])+2*mt.cos(2*t[i])+mt.cos(3*t[i])+2*mt.sin(t[i])+4*mt.sin(2*t[i])+3*mt.sin(3*t[i])
 
 
-print("Metodo trapecio")
-a0=0
-an=np.zeros(3)
-bn=np.zeros(3)
-for i in range(0,len(t)-1):
-    a0=a0+((f[i]+f[i+1])/2)*ts
-    for j in range(0,3):
-        an[j]=an[j]+((f[i]+f[i+1])/2)*mt.cos((j+1)*t[i])*ts
-        bn[j]=bn[j]+((f[i]+f[i+1])/2)*mt.sin((j+1)*t[i])*ts
+    an,bn = calcula_parametros(f=f,ts=ts,num=4)
+    print(an,bn)
+
+    t0=t
+    t = np.linspace(mt.pi,  3*mt.pi, num=num_datos)
+    for i in range (0,len(t)):
+        g[i]=an[0]+an[1]*mt.cos(t[i])+an[2]*mt.cos(2*t[i])+\
+             an[3]*mt.cos(3*t[i])+an[4]*mt.cos(4*t[i])+\
+             +bn[0]*mt.sin(t[i])+bn[1]*mt.sin(2*t[i])+bn[2]*mt.sin(3*t[i])+\
+             bn[3]*mt.sin(4*t[i])
 
 
-a0=a0/(2*mt.pi)
-for j in range(0, 3):
-    an[j] = an[j] / mt.pi
-    bn[j] = bn[j] / mt.pi
+    plt.figure()
+    plt.plot(t0,f,t,g)
+    plt.grid(True)
+    plt.xlabel('t')
+    plt.ylabel('f(t)')
+    plt.title('Funcion f(t)')
+    plt.show()
 
-plt.figure()
-plt.plot(f)
-plt.show()
 
-print("a0:",a0,"a: ",an,"bn: ",bn)
+
