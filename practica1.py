@@ -59,11 +59,13 @@ if __name__ == "__main__":
 
 
     plt.figure()
-    plt.plot(t0,f,t,g)
+    plt.plot(t0,f, label= 'fcn original')
+    plt.plot(t,g,'--',label='fcn recreada')
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=2, mode="expand", borderaxespad=0.)
     plt.grid(True)
     plt.xlabel('t')
     plt.ylabel('f(t)')
-    plt.title('Funcion f(t)')
     plt.show()
 
 
