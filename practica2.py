@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 def imGenerator(imSize, functType,frec,orientation ):
     '''
-
     :param imSize:
     :param functType:
     :param frec: frecuencia de cambio
@@ -17,12 +16,12 @@ def imGenerator(imSize, functType,frec,orientation ):
     if functType == "cos" :
 
         for j in range(0,imSize[1]):
-            image[:,j] = 255*(np.cos((2*mt.pi)*(j/imSize[0])*frec))
+            image[:,j] = 255*abs(np.cos((mt.pi)*(j/imSize[1])*frec))
 
     if functType == "sin" :
 
         for j in range(0,imSize[1]):
-            image[:,j] = 255*(np.sin((2*mt.pi)^2*(j/imSize[0])*frec))
+            image[:,j] = 255*abs(np.sin((mt.pi)^2*(j/imSize[1])*frec))
 
     if orientation == 0:
         return image
@@ -39,11 +38,7 @@ def imfft(image):
 
     '''
     imageFFT = np.fft.fft2(image)
-
-
-
-
-
+    imageFFT = np.fft.fftshift(imageFFT)
     return imageFFT
 
 def immagphase(freq):
@@ -56,8 +51,7 @@ def immagphase(freq):
     angle = np.angle(freq)
     mag = np.absolute(freq)
     mag = np.log(mag+1e-7)
-    print("angle: ",angle)
-    print("mag: ",mag)
+
 
     x = mag*np.cos(angle)
     y = mag*np.sin(angle)
@@ -71,14 +65,145 @@ def immagphase(freq):
 
     return
 
+def lowpassfilter(tam,frecCorte,n):
+    '''
+
+    :param tam:
+    :param frecCorte:
+    :param n:
+    :return:
+    '''
+    H = np.zeros(tam)
+    center = [0.5*i for i in tam]
+
+    for u in range(0,tam[0]):
+        for v in range(0,tam[1]):
+            # distancia del centro a (u,v)
+            D = mt.sqrt((u-center[0])**2+(v-center[1])**2)
+            H[u,v]=1/((1+((D/frecCorte)**(2*n))))
+
+
+
+    return H
+def highpassfilter(tam,frecCorte,n):
+    '''
+
+    :param tam:
+    :param frecCorte:
+    :param n:
+    :return:
+    '''
+
+    H = 1 - lowpassfilter(tam=tam,frecCorte=frecCorte,n=n)
+
+    return H
+
+def sobelmask(tam,orientation):
+    '''
+
+    :param tam:
+    :param orientation:
+    :return:
+    '''
+    mask = np.zeros(tam)
+    sobel = np.matrix('-1,0,1;-2,0,2;-1,0,1')
+
+    if orientation != 'x':  #orientation = 'y'
+        sobel = sobel.getT()
+
+    mask[:sobel.shape[0], :sobel.shape[1]] = sobel  # zero padding
+    mask = imfft(mask)
+
+    return mask
+
 if __name__ == "__main__":
 
-    image = imGenerator((100,100),"cos",1,0)
+    image = imGenerator((100,150),"cos",1,90)
     freq = imfft(image)
-    cv2.imshow("image", image)
+
+
+
+   # immagphase(freq)
+
+    # Filtro de paso bajo
+
+    lenna = cv2.imread('Lenna.png', flags=0)
+    lenna_fft = imfft(lenna)
+
+    H_low = lowpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
+    H_low_gray = np.multiply(255,H_low)
+    H_low_gray = np.array(H_low_gray,dtype='uint8')
+
+    lenna_gray = np.multiply(255,lenna_fft)
+    lenna_gray = np.array(lenna_gray.real, dtype='uint8')
+
+
+
+    result_fft_low = np.multiply(lenna_fft,H_low)
+    result_low = np.array(abs(np.fft.ifft2(result_fft_low).real),dtype='uint8')
+
+    plt.subplot(121)
+    plt.imshow(lenna, cmap='gray')
+    plt.title('imagen original')
+
+    plt.subplot(122)
+    plt.imshow(result_low, cmap='gray')
+    plt.title('Filtrado paso bajo')
+    plt.show()
+
+    # Filtro de paso alto
+    H_high = highpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
+
+    result_fft_high = np.multiply(lenna_fft, H_high)
+    result_high = np.array(abs(np.fft.ifft2(result_fft_high).real), dtype='uint8')
+
+    plt.subplot(121)
+    plt.imshow(lenna, cmap='gray')
+    plt.title('imagen original')
+
+    plt.subplot(122)
+    plt.imshow(result_low, cmap='gray')
+    plt.title('Filtrado paso alto')
+    plt.show()
+
+    H_high_gray = np.multiply(255, H_high)
+    H_high_gray = np.array(H_high_gray, dtype='uint8')
+    cv2.imshow("s",H_high_gray)
     cv2.waitKey()
 
-    immagphase(freq)
+    # -----------------Sobel---------------------------
+
+
+
+    # Sobel en eje x
+    mask_x = sobelmask(tam=lenna_fft.shape, orientation='x')
+    result_fft_x = np.multiply(lenna_fft,mask_x)
+    result_x= np.array(abs(np.fft.ifft2(result_fft_x).real),dtype='uint8')
+
+    # Sobel en eje y
+    mask_y = sobelmask(tam=lenna_fft.shape, orientation='y')
+    result_fft_y = np.multiply(lenna_fft, mask_y)
+    result_y = np.array(abs(np.fft.ifft2(result_fft_y).real), dtype='uint8')
+
+    # Sobel en ambos ejes
+    result_fft_xy = np.multiply(result_fft_x, mask_y)
+    result_xy = np.array(abs(np.fft.ifft2(result_fft_xy).real), dtype='uint8')
+
+
+    _,axarr = plt.subplots(2,2)
+    axarr[0,0].imshow(lenna,cmap='gray')
+    axarr[0, 0].set_title('imagen original')
+    axarr[0, 1].imshow(result_x,cmap='gray')
+    axarr[0, 1].set_title('Sobel en direccion x')
+    axarr[1, 0].imshow(result_y,cmap='gray')
+    axarr[1, 0].set_title('Sobel en direccion y')
+    axarr[1, 1].imshow(result_xy,cmap='gray')
+    axarr[1, 1].set_title('Sobel en direccion x e y')
+    plt.show()
+
+
+
+
 
 
 
