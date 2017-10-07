@@ -50,7 +50,7 @@ def immagphase(freq):
 
     angle = np.angle(freq)
     mag = np.absolute(freq)
-    mag = np.log(mag+1e-7)
+    #mag = np.log(mag+1e-7)
 
 
     x = mag*np.cos(angle)
@@ -88,7 +88,7 @@ def lowpassfilter(tam,frecCorte,n):
 def highpassfilter(tam,frecCorte,n):
     '''
 
-    :param tam:
+    :param tam: size of image
     :param frecCorte:
     :param n:
     :return:
@@ -101,9 +101,9 @@ def highpassfilter(tam,frecCorte,n):
 def sobelmask(tam,orientation):
     '''
 
-    :param tam:
-    :param orientation:
-    :return:
+    :param tam: size of image
+    :param orientation: orientation of sobel mask
+    :return: sobel FFT mask
     '''
     mask = np.zeros(tam)
     sobel = np.matrix('-1,0,1;-2,0,2;-1,0,1')
@@ -118,17 +118,21 @@ def sobelmask(tam,orientation):
 
 if __name__ == "__main__":
 
-    image = imGenerator((100,150),"cos",1,90)
+    image = imGenerator((100,150),"cos",1,1)
     freq = imfft(image)
+    image_freq = np.array(abs(255*(freq).real),dtype='uint8')
 
-
-
-   # immagphase(freq)
+    '''
+    cv2.imshow("imagen generada",image)
+    cv2.imshow("imagen freq",image_freq)
+    cv2.waitKey()
+    immagphase(freq)
+    '''
+    lenna = cv2.imread('Lenna.png', flags=0)
+    lenna_fft = imfft(lenna)
 
     # Filtro de paso bajo
 
-    lenna = cv2.imread('Lenna.png', flags=0)
-    lenna_fft = imfft(lenna)
 
     H_low = lowpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
     H_low_gray = np.multiply(255,H_low)
@@ -142,34 +146,39 @@ if __name__ == "__main__":
     result_fft_low = np.multiply(lenna_fft,H_low)
     result_low = np.array(abs(np.fft.ifft2(result_fft_low).real),dtype='uint8')
 
-    plt.subplot(121)
+    plt.subplot(131)
     plt.imshow(lenna, cmap='gray')
-    plt.title('imagen original')
-
-    plt.subplot(122)
+    plt.title('Imagen')
+    plt.subplot(132)
+    plt.imshow(H_low_gray, cmap='gray')
+    plt.title('Filtro paso bajo')
+    plt.subplot(133)
     plt.imshow(result_low, cmap='gray')
-    plt.title('Filtrado paso bajo')
+    plt.title('Imagen*filtro')
     plt.show()
 
     # Filtro de paso alto
     H_high = highpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
+    H_high_gray = np.multiply(255, H_high)
+    H_high_gray = np.array(H_high_gray, dtype='uint8')
 
     result_fft_high = np.multiply(lenna_fft, H_high)
     result_high = np.array(abs(np.fft.ifft2(result_fft_high).real), dtype='uint8')
 
-    plt.subplot(121)
-    plt.imshow(lenna, cmap='gray')
-    plt.title('imagen original')
 
-    plt.subplot(122)
-    plt.imshow(result_low, cmap='gray')
-    plt.title('Filtrado paso alto')
+    plt.subplot(131)
+    plt.imshow(lenna, cmap='gray')
+    plt.title('Imagen')
+    plt.subplot(132)
+    plt.imshow(H_high_gray, cmap='gray')
+    plt.title('Filtro de paso alto')
+    plt.subplot(133)
+    plt.imshow(result_high,cmap='gray')
+    plt.title('Imagen*Filtro')
     plt.show()
 
-    H_high_gray = np.multiply(255, H_high)
-    H_high_gray = np.array(H_high_gray, dtype='uint8')
-    cv2.imshow("s",H_high_gray)
-    cv2.waitKey()
+
+
 
     # -----------------Sobel---------------------------
 
@@ -200,14 +209,3 @@ if __name__ == "__main__":
     axarr[1, 1].imshow(result_xy,cmap='gray')
     axarr[1, 1].set_title('Sobel en direccion x e y')
     plt.show()
-
-
-
-
-
-
-
-
-
-
-
