@@ -43,7 +43,7 @@ def imfft(image):
 
 def immagphase(freq):
     '''
-
+    No se como es
     :param freq:
     :return:
     '''
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
 
 
-    # -----------------Sobel---------------------------
+    # -----------------Sobel--------------------------- #
 
 
 
