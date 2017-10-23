@@ -183,7 +183,6 @@ if __name__ == "__main__":
     # -----------------Sobel--------------------------- #
 
 
-
     # Sobel en eje x
     mask_x = sobelmask(tam=lenna_fft.shape, orientation='x')
     result_fft_x = np.multiply(lenna_fft,mask_x)
