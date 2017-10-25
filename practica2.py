@@ -142,7 +142,7 @@ if __name__ == "__main__":
     lenna_fft = imfft(lenna)
 
     # Filtro de paso bajo
-
+    '''
 
     H_low = lowpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
     H_low_gray = np.multiply(255,H_low)
@@ -166,6 +166,7 @@ if __name__ == "__main__":
     plt.imshow(result_low, cmap='gray')
     plt.title('Imagen*filtro')
     plt.show()
+    '''
 
     # Filtro de paso alto
     H_high = highpassfilter(tam=lenna_fft.shape,frecCorte=10,n=1)
