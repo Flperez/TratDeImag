@@ -8,13 +8,15 @@ def calcula_SSD(xr,yr,xl,yl,f,h,block):
 
     inc = int(block[0] / 2)
     block_f = f[xr - inc:xr + inc+1, yr - inc:yr + inc+1]
-    block_h = h[xl, yl] * np.ones(block)
+    block_h = h[xl - inc:xl + inc+1, yl - inc:yl + inc+1]
 
 
-    SSD = 1/(1+np.sum((block_f-block_h)**2))
+    #SSD = 1/(1+np.sum((block_f-block_h)**2))
+    SSD = np.sum((block_f-block_h)**2)
 
 
     return SSD
+
 
 
 
@@ -28,7 +30,7 @@ if __name__=="__main__":
     disparidad = np.zeros(imgR.shape,dtype='uint8')
 
     for x in range(int(block[0]/2),imgR.shape[0]-int(block[0]/2)):
-        for y in range(int(block[1]/2),imgR.shape[1]-int(block[1]/2)-1):
+        for y in range(int(block[0]/2),imgR.shape[1]-int(block[0]/2)-1):
             #Para el pixel "x" e "y"
 
             flag = False
@@ -40,18 +42,16 @@ if __name__=="__main__":
                                           xl=x,yl=y,
                                           f=imgR,h=imgL,
                                           block=block)
+
                     if flag == False:
                         min = SSD
                         flag = True
                     else:
-                        if SSD<min:
-                            min=SSD
-                        else:
-                            # la iteracion anterior es la que tiene el SSD menor
+                        if SSD < min:
+                            min = SSD
+                            disparidad[x, y] = it
 
-                            break
 
-            disparidad[x, y] = it - 1
 
 
 
@@ -63,8 +63,6 @@ if __name__=="__main__":
     disparidad = int(255/max_dispar) * disparidad
 
     cv2.imwrite("disparidad.png", disparidad)
-
-
     plt.imshow(disparidad,cmap='gray')
     plt.title("Disparidad")
 
