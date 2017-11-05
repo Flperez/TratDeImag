@@ -40,6 +40,7 @@ def create_mask(porcentaje):
 if __name__=="__main__":
 
     img = cv2.imread("Lenna.png", 0)  # gray
+    # TODO: convertir imagen RGB a YCbCr y utilizar el canal Y
     width, height = img.shape
     width = int(width / 8)
     height = int(height / 8)
