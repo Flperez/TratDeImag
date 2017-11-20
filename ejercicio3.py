@@ -39,13 +39,21 @@ def create_mask(porcentaje):
 
 if __name__=="__main__":
 
-    img = cv2.imread("Lenna.png", 0)  # gray
-    # TODO: convertir imagen RGB a YCbCr y utilizar el canal Y
+    img = cv2.imread("Lenna.png")  # gray
+
+    img = cv2.cvtColor(src=img,code=cv2.COLOR_RGB2YCrCb)
+    img = img[:,:,0]
+    print(img.shape)
+    size = img.shape
     width, height = img.shape
+
     width = int(width / 8)
     height = int(height / 8)
-    size = width,height
-    #img = cv2.resize(src=img,dsize=size)
+    size2 = 8*width,8*height
+
+    if size != size2:
+        img = cv2.resize(src=img,dsize=size)
+        print("Redimensionado a ",size2)
 
 
     mask= np.zeros((8,8))
@@ -53,7 +61,6 @@ if __name__=="__main__":
 
     mask2=np.zeros((8,8))
     mask2[0:7,0:7]=np.rot90(np.tri(7, 7, -3, dtype=int).T)
-    print("mask2:",mask2)
 
     img_reducida = np.zeros(img.shape,dtype='uint8')
     img_reducida2 = np.zeros(img.shape,dtype='uint8')
@@ -80,42 +87,4 @@ if __name__=="__main__":
     plt.imshow(img_reducida2, cmap='gray')
     plt.title('Imagen reducida 10/64')
     plt.show()
-
-    '''
-    ############### Reduccion JPG ########################
-    luminancia = np.array([[16,11,10,16,24,40,51,61],
-                          [12,12,14,19,26,58,60,55],
-                          [14,13,16,24,40,57,69,56],
-                          [14,17,22,29,51,87,80,62],
-                          [18,22,37,56,68,109,103,77],
-                          [24,36,55,64,81,104,113,92],
-                          [49,64,78,87,103,121,210,101],
-                          [72,92,95,98,112,100,103,99]])
-    imgJPG=img
-    imgJPG=imgJPG-255*np.ones(imgJPG.shape)
-    for i in range(0,width):
-        for j in range(0,height):
-            block = imgJPG[8*i:8*(i+1),(j*8):8*(j+1)]
-
-            block_dct = get_2D_dct(block)
-            #se divide por el factor de calidad
-            block_dct=np.divide(block_dct,luminancia)
-            #se redondea
-            block_dct=np.array(block_dct,dtype='int8')
-
-            block_dct = block_dct+255*np.ones(block_dct.shape)
-            img_reducida[8 * i:8 * (i + 1), (j * 8):8 * (j + 1)] = get_2d_idct(block_dct)
-
-    cv2.imshow("imagen original", img)
-    cv2.imshow("imagen 'jpg'", img_reducida)
-    cv2.waitKey()
-
-
-
-
-'''
-
-
-
-
 
